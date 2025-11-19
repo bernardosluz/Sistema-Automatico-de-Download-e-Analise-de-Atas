@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Configurações - SADA-ATA</title>
+  <link rel="stylesheet" href="../styles/style.css">
+  <link rel="stylesheet" href="../styles/configuracoes-style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>⚙️ Configurações de Download</h1>
+
+    <div id="mensagem" class="mensagem"></div>
+
+    <!-- Diretório de Download -->
+    <div class="secao">
+      <label>📁 Diretório de Download</label>
+      <div class="input-group">
+        <input type="text" id="diretorio" placeholder="Selecione o diretório..." readonly>
+        <button class="btn-primario" onclick="selecionarDiretorio()">Selecionar Pasta</button>
+      </div>
+      <div class="info">
+        💡 Escolha onde os arquivos das atas serão salvos
+      </div>
+    </div>
+
+    <!-- Modo de Organização -->
+    <div class="secao">
+      <label>📂 Modo de Organização</label>
+      <div class="opcoes-organizacao">
+        
+        <div class="opcao" onclick="selecionarOpcao('direto')">
+          <input type="radio" name="organizacao" value="direto" id="opcao-direto">
+          <div class="opcao-conteudo">
+            <h3>Arquivos Diretos</h3>
+            <p>Salva todos os arquivos diretamente na pasta escolhida, sem criar subpastas</p>
+          </div>
+        </div>
+
+        <div class="opcao" onclick="selecionarOpcao('organizado')">
+          <input type="radio" name="organizacao" value="organizado" id="opcao-organizado" checked>
+          <div class="opcao-conteudo">
+            <h3>Arquivos Organizados</h3>
+            <p>Cria uma pasta numerada para cada ata (ex: 0001-idAta, 0002-idAta)</p>
+          </div>
+        </div>
+
+        <div class="opcao" onclick="selecionarOpcao('ambos')">
+          <input type="radio" name="organizacao" value="ambos" id="opcao-ambos">
+          <div class="opcao-conteudo">
+            <h3>Ambos</h3>
+            <p>Salva arquivos diretos E organizados em pastas (duplica os arquivos)</p>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="contador-info">
+        <span>📊 Contador atual de atas: <strong id="contador">0000</strong></span>
+        <button class="btn-secundario" onclick="resetarContador()">Resetar Contador</button>
+      </div>
+    </div>
+
+    <!-- Botões de Ação -->
+    <div class="acoes">
+      <button class="btn-primario" onclick="salvar()">💾 Salvar Configurações</button>
+    </div>
+
+  </div>
+
+  <script>
+    // =============================================================================
+    // ⭐ SISTEMA DE COMUNICAÇÃO COM JANELA PRINCIPAL
+    // =============================================================================
+
+    /**
+     * HELPER: Envia mensagem para janela principal e aguarda resposta
+     * 
+     * Como funciona:
+     * 1. Envia mensagem via postMessage para window.parent (janela principal)
+     * 2. Cria uma Promise que aguarda a resposta
+     * 3. Quando resposta chega, resolve a Promise
+     * 
+     * @param {string} tipo - Tipo da mensagem
+     * @param {*} dados - Dados a enviar (opcional)
+     * @returns {Promise} Promise que resolve com a resposta
+     */
+    function enviarMensagem(tipo, dados = null) {
+      return new Promise((resolve, reject) => {
+        // 1. Envia mensagem para janela pai
+        // window.parent é a janela que contém este iframe (index.html)
+        window.parent.postMessage({
+          tipo: tipo,
+          dados: dados
+        }, '*');
+
+        // 2. Cria listener temporário para aguardar resposta
+        const tipoResposta = `resposta-${tipo}`;
+        
+        // Função que será chamada quando resposta chegar
+        function aguardarResposta(evento) {
+          // Verifica se é a resposta que estamos esperando
+          if (evento.data.tipo === tipoResposta) {
+            // Remove o listener (não precisa mais)
+            window.removeEventListener('message', aguardarResposta);
+            
+            // Verifica se deu sucesso ou erro
+            if (evento.data.sucesso) {
+              resolve(evento.data.dados); // Sucesso!
+            } else {
+              reject(new Error(evento.data.erro)); // Erro!
+            }
+          }
+        }
+
+        // 3. Registra o listener
+        window.addEventListener('message', aguardarResposta);
+
+        // 4. Timeout de segurança (se não responder em 10s, cancela)
+        setTimeout(() => {
+          window.removeEventListener('message', aguardarResposta);
+          reject(new Error('Timeout: sem resposta da janela principal'));
+        }, 10000);
+      });
+    }
+
+    // =============================================================================
+    // FUNÇÕES DA PÁGINA
+    // =============================================================================
+
+    /**
+     * Carrega configurações ao iniciar
+     */
+    async function carregarConfiguracoes() {
+      try {
+        console.log('[Config] Carregando configurações...');
+        
+        // Usa nossa função helper para enviar mensagem e aguardar resposta
+        // É como fazer: await ipcRenderer.invoke('carregar-configuracoes')
+        // Mas funciona dentro do iframe!
+        const config = await enviarMensagem('carregar-configuracoes');
+        
+        console.log('[Config] Configurações recebidas:', config);
+
+        // Preenche diretório
+        if (config.diretorioDownload) {
+          document.getElementById('diretorio').value = config.diretorioDownload;
+        }
+
+        // Seleciona modo de organização
+        const modo = config.modoOrganizacao || 'organizado';
+        document.getElementById(`opcao-${modo}`).checked = true;
+        document.querySelector(`#opcao-${modo}`).parentElement.classList.add('selecionada');
+
+        // Exibe contador
+        const contador = (config.contadorAtas || 0).toString().padStart(4, '0');
+        document.getElementById('contador').textContent = contador;
+
+      } catch (erro) {
+        console.error('[Config] Erro ao carregar configurações:', erro);
+        mostrarMensagem('❌ Erro ao carregar configurações', 'erro');
+      }
+    }
+
+    /**
+     * Seleciona opção de organização
+     */
+    function selecionarOpcao(opcao) {
+      // Remove seleção de todas as opções
+      document.querySelectorAll('.opcao').forEach(el => el.classList.remove('selecionada'));
+      
+      // Marca a opção escolhida
+      document.getElementById(`opcao-${opcao}`).checked = true;
+      document.getElementById(`opcao-${opcao}`).parentElement.classList.add('selecionada');
+    }
+
+    /**
+     * Abre seletor de diretório
+     */
+    async function selecionarDiretorio() {
+      try {
+        console.log('[Config] Abrindo seletor de diretório...');
+        
+        // Envia mensagem para janela principal pedir seleção de diretório
+        const caminho = await enviarMensagem('selecionar-diretorio');
+        
+        // Se usuário escolheu um diretório (não cancelou)
+        if (caminho) {
+          document.getElementById('diretorio').value = caminho;
+          console.log('[Config] Diretório selecionado:', caminho);
+        }
+      } catch (erro) {
+        console.error('[Config] Erro ao selecionar diretório:', erro);
+        mostrarMensagem('❌ Erro ao selecionar diretório', 'erro');
+      }
+    }
+
+    /**
+     * Salva configurações
+     */
+    async function salvar() {
+      const diretorio = document.getElementById('diretorio').value;
+      
+      // Validação básica
+      if (!diretorio) {
+        mostrarMensagem('⚠️ Por favor, selecione um diretório', 'erro');
+        return;
+      }
+
+      const modoSelecionado = document.querySelector('input[name="organizacao"]:checked').value;
+
+      try {
+        console.log('[Config] Salvando configurações...');
+        
+        // Envia configurações para serem salvas
+        await enviarMensagem('salvar-configuracoes', {
+          diretorioDownload: diretorio,
+          modoOrganizacao: modoSelecionado
+        });
+
+        mostrarMensagem('✅ Configurações salvas com sucesso!', 'sucesso');
+        
+        // Recarrega para atualizar contador
+        setTimeout(carregarConfiguracoes, 1000);
+
+      } catch (erro) {
+        console.error('[Config] Erro ao salvar:', erro);
+        mostrarMensagem('❌ Erro ao salvar configurações', 'erro');
+      }
+    }
+
+    /**
+     * Reseta contador de atas
+     */
+    async function resetarContador() {
+      if (!confirm('Deseja realmente resetar o contador de atas para 0000?')) {
+        return; // Usuário cancelou
+      }
+
+      try {
+        console.log('[Config] Resetando contador...');
+        
+        await enviarMensagem('resetar-contador');
+        
+        document.getElementById('contador').textContent = '0000';
+        mostrarMensagem('✅ Contador resetado!', 'sucesso');
+      } catch (erro) {
+        console.error('[Config] Erro ao resetar:', erro);
+        mostrarMensagem('❌ Erro ao resetar contador', 'erro');
+      }
+    }
+
+    /**
+     * Mostra mensagem de feedback
+     */
+    function mostrarMensagem(texto, tipo) {
+      const mensagem = document.getElementById('mensagem');
+      mensagem.textContent = texto;
+      mensagem.className = `mensagem ${tipo}`;
+      mensagem.style.display = 'block';
+      
+      // Remove mensagem após 3 segundos
+      setTimeout(() => {
+        mensagem.style.display = 'none';
+      }, 3000);
+    }
+
+    // =============================================================================
+    // RECEBER MUDANÇAS DE TEMA
+    // =============================================================================
+
+    /**
+     * Escuta mensagens da janela principal
+     * Especialmente mudanças de tema
+     */
+    window.addEventListener('message', (evento) => {
+      if (evento.data.tipo === 'mudar-tema') {
+        const tema = evento.data.tema;
+        document.body.setAttribute('data-theme', tema);
+        console.log('[Config] Tema alterado para:', tema);
+      }
+    });
+
+    // =============================================================================
+    // INICIALIZAÇÃO
+    // =============================================================================
+
+    // Carrega configurações quando página carregar
+    window.addEventListener('DOMContentLoaded', carregarConfiguracoes);
+  </script>
+</body>
+</html>

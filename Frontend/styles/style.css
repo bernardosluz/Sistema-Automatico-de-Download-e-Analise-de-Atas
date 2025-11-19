@@ -1,0 +1,397 @@
+/* =============================================================================
+   VARIÁVEIS CSS (TEMA CLARO E ESCURO)
+   ============================================================================= */
+
+:root {
+  --bg: #ffffff;
+  --text: #1a1a1a;
+  --input-bg: #f5f5f5;
+  --border: #dddddd;
+  --primary: #0066cc;
+  --primary-hover: #0052a3;
+  --success: #28a745;
+  --error: #dc3545;
+  --warning: #ffc107;
+  --shadow: rgba(0, 0, 0, 0.1);
+  
+  /* Cores das abas */
+  --tab-bg: #f8f9fa;
+  --tab-active-bg: #ffffff;
+  --tab-hover: #e9ecef;
+  --tab-border: #dee2e6;
+}
+
+[data-theme="dark"] {
+  --bg: #1a1a1a;
+  --text: #ffffff;
+  --input-bg: #2d2d2d;
+  --border: #444444;
+  --primary: #4d94ff;
+  --primary-hover: #3378ff;
+  --success: #34d058;
+  --error: #f85149;
+  --warning: #ffd33d;
+  --shadow: rgba(0, 0, 0, 0.3);
+  
+  --tab-bg: #252525;
+  --tab-active-bg: #1a1a1a;
+  --tab-hover: #2d2d2d;
+  --tab-border: #3a3a3a;
+}
+
+/* =============================================================================
+   RESET E BASE
+   ============================================================================= */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  transition: all 0.3s ease;
+  min-height: 100vh;
+}
+
+/* Estilos APENAS para o body da janela principal */
+.main-window-body {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* <-- Agora está isolado */
+}
+
+/* =============================================================================
+   CABEÇALHO PRINCIPAL
+   ============================================================================= */
+
+.main-header {
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  z-index: 100;
+  position: sticky;
+  top: 0;
+}
+
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 40px;
+  background: var(--input-bg);
+}
+
+.header-content h1 {
+  font-size: 28px;
+  color: var(--primary);
+  margin-bottom: 5px;
+}
+
+.subtitle {
+  font-size: 14px;
+  color: var(--text);
+  opacity: 0.7;
+}
+
+.header-actions {
+  display: flex;
+  gap: 10px;
+}
+
+#theme-btn {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  width: 50px;
+  height: 50px;
+  font-size: 24px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+#theme-btn:hover {
+  transform: rotate(15deg) scale(1.1);
+  border-color: var(--primary);
+}
+
+/* =============================================================================
+   SISTEMA DE ABAS (ESTILO CHROME)
+   ============================================================================= */
+
+.tabs-navigation {
+  position: relative;
+  background: var(--tab-bg);
+  border-bottom: 1px solid var(--tab-border);
+}
+
+.tabs-container {
+  display: flex;
+  gap: 4px;
+  padding: 8px 20px 0 20px;
+  position: relative;
+}
+
+.tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: transparent;
+  border: none;
+  border-radius: 8px 8px 0 0;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+  opacity: 0.7;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.tab-btn:hover {
+  background: var(--tab-hover);
+  opacity: 1;
+}
+
+.tab-btn.active {
+  background: var(--tab-active-bg);
+  opacity: 1;
+  color: var(--primary);
+}
+
+.tab-icon {
+  font-size: 18px;
+}
+
+.tab-text {
+  font-weight: 600;
+}
+
+/* Indicador animado abaixo da aba ativa */
+.tab-indicator {
+  position: absolute;
+  bottom: 0;
+  left: 20px;
+  height: 3px;
+  background: var(--primary);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 3px 3px 0 0;
+}
+
+/* =============================================================================
+   CONTEÚDO PRINCIPAL
+   ============================================================================= */
+
+.main-content {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.tab-content {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+  overflow-y: auto;
+}
+
+.tab-content.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.tab-content iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+/* =============================================================================
+   RODAPÉ
+   ============================================================================= */
+
+.main-footer {
+  padding: 15px 20px;
+  text-align: center;
+  border-top: 1px solid var(--border);
+  background: var(--input-bg);
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+/* =============================================================================
+   NOTIFICAÇÕES TOAST
+   ============================================================================= */
+
+.toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.toast {
+  background: white;
+  padding: 16px 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 300px;
+  max-width: 400px;
+  pointer-events: all;
+  animation: slideIn 0.3s ease-out;
+  border-left: 4px solid #4CAF50;
+}
+
+.toast.success {
+  border-left-color: #4CAF50;
+}
+
+.toast.error {
+  border-left-color: #f44336;
+}
+
+.toast.info {
+  border-left-color: #2196F3;
+}
+
+.toast-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.toast-content {
+  flex: 1;
+}
+
+.toast-title {
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.toast-message {
+  font-size: 13px;
+  opacity: 0.8;
+}
+
+.toast-close {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  opacity: 0.5;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.toast-close:hover {
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.05);
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.toast.removing {
+  animation: slideOut 0.3s ease-out forwards;
+}
+
+@keyframes slideOut {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+}
+
+[data-theme="dark"] .toast {
+  background: #2d2d2d;
+  color: #e0e0e0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+[data-theme="dark"] .toast-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* =============================================================================
+   SCROLLBAR
+   ============================================================================= */
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--input-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
+}
+
+/* =============================================================================
+   RESPONSIVO
+   ============================================================================= */
+
+@media (max-width: 768px) {
+  .header-top {
+    padding: 15px 20px;
+  }
+  
+  .header-content h1 {
+    font-size: 24px;
+  }
+  
+  .tabs-container {
+    padding: 8px 10px 0 10px;
+  }
+  
+  .tab-btn {
+    padding: 10px 16px;
+    font-size: 13px;
+  }
+  
+  .tab-icon {
+    font-size: 16px;
+  }
+}

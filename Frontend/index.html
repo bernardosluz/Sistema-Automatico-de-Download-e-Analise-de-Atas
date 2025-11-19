@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SADA-ATA</title>
+  <link rel="stylesheet" href="styles/style.css">
+</head>
+<body class="main-window-body">
+  
+  <!-- ========== CABEÇALHO COM ABAS ========== -->
+  <header class="main-header">
+    <div class="header-top">
+      <div class="header-content">
+        <h1>🔍 SADA-ATA</h1>
+        <p class="subtitle">Sistema Automatizado de Download de Atas</p>
+      </div>
+      <div class="header-actions">
+        <button id="theme-btn" title="Alternar tema">🌙</button>
+      </div>
+    </div>
+
+    <!-- ========== NAVEGAÇÃO POR ABAS ========== -->
+    <nav class="tabs-navigation">
+      <div class="tabs-container">
+        <button class="tab-btn active" data-tab="download">
+          <span class="tab-icon">📥</span>
+          <span class="tab-text">Download</span>
+        </button>
+        <button class="tab-btn" data-tab="configuracoes">
+          <span class="tab-icon">⚙️</span>
+          <span class="tab-text">Configurações</span>
+        </button>
+      </div>
+      <div class="tab-indicator"></div>
+    </nav>
+  </header>
+
+  <!-- ========== CONTEÚDO DAS ABAS ========== -->
+  <main class="main-content">
+    <!-- Aba de Download -->
+    <div class="tab-content active" id="tab-download">
+      <iframe 
+        src="pages/download.html" 
+        frameborder="0"
+        id="download-iframe"
+        title="Download de Atas"
+      ></iframe>
+    </div>
+
+    <!-- Aba de Configurações -->
+    <div class="tab-content" id="tab-configuracoes">
+      <iframe 
+        src="pages/configuracoes.html" 
+        frameborder="0"
+        id="config-iframe"
+        title="Configurações"
+      ></iframe>
+    </div>
+  </main>
+
+  <!-- ========== RODAPÉ ========== -->
+  <footer class="main-footer">
+    <p>SADA-ATA v1.0 | Desenvolvido para facilitar acesso a atas públicas</p>
+  </footer>
+
+  <!-- Container de notificações toast -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <script>
+    const { ipcRenderer } = require('electron');
+
+    // =============================================================================
+    // REFERÊNCIAS DOS ELEMENTOS
+    // =============================================================================
+    
+    const botaoTema = document.getElementById('theme-btn');
+    const tabBotoes = document.querySelectorAll('.tab-btn');
+    const tabConteudos = document.querySelectorAll('.tab-content');
+    const tabIndicador = document.querySelector('.tab-indicator');
+    const downloadIframe = document.getElementById('download-iframe');
+    const configIframe = document.getElementById('config-iframe');
+
+    // =============================================================================
+    // GERENCIAMENTO DE TEMA
+    // =============================================================================
+
+    let temaDark = false;
+
+    function carregarTema() {
+      const temaSalvo = localStorage.getItem('theme');
+      if (temaSalvo === 'dark') {
+        aplicarTemaDark();
+      } else {
+        aplicarTemaLight();
+      }
+    }
+
+    function alternarTema() {
+      temaDark = !temaDark;
+      
+      if (temaDark) {
+        aplicarTemaDark();
+      } else {
+        aplicarTemaLight();
+      }
+      
+      localStorage.setItem('theme', temaDark ? 'dark' : 'light');
+      propagarTema();
+    }
+
+    function aplicarTemaDark() {
+      temaDark = true;
+      document.body.setAttribute('data-theme', 'dark');
+      botaoTema.textContent = '☀️';
+      console.log('[Index] Tema escuro aplicado');
+    }
+
+    function aplicarTemaLight() {
+      temaDark = false;
+      document.body.setAttribute('data-theme', 'light');
+      botaoTema.textContent = '🌙';
+      console.log('[Index] Tema claro aplicado');
+    }
+
+    /**
+     * Propaga tema para TODOS os iframes
+     * IMPORTANTE: Envia tema assim que iframe carregar
+     */
+    function propagarTema() {
+      const tema = temaDark ? 'dark' : 'light';
+      const iframes = [downloadIframe, configIframe];
+      
+      console.log('[Index] Propagando tema:', tema);
+      
+      iframes.forEach(iframe => {
+        if (iframe && iframe.contentWindow) {
+          iframe.contentWindow.postMessage({
+            tipo: 'mudar-tema',
+            tema: tema
+          }, '*');
+        }
+      });
+    }
+
+    // =============================================================================
+    // SISTEMA DE ABAS
+    // =============================================================================
+
+    function ativarAba(tabId) {
+      tabBotoes.forEach(btn => btn.classList.remove('active'));
+      tabConteudos.forEach(content => content.classList.remove('active'));
+
+      const botaoAtivo = document.querySelector(`[data-tab="${tabId}"]`);
+      const conteudoAtivo = document.getElementById(`tab-${tabId}`);
+
+      if (botaoAtivo && conteudoAtivo) {
+        botaoAtivo.classList.add('active');
+        conteudoAtivo.classList.add('active');
+        
+        moverIndicador(botaoAtivo);
+        localStorage.setItem('abaAtiva', tabId);
+        
+        // Propaga tema ao trocar de aba
+        setTimeout(propagarTema, 100);
+      }
+    }
+
+    function moverIndicador(botao) {
+      const rect = botao.getBoundingClientRect();
+      const container = document.querySelector('.tabs-container');
+      const containerRect = container.getBoundingClientRect();
+      
+      const left = rect.left - containerRect.left;
+      const width = rect.width;
+      
+      tabIndicador.style.left = `${left}px`;
+      tabIndicador.style.width = `${width}px`;
+    }
+
+    tabBotoes.forEach(botao => {
+      botao.addEventListener('click', () => {
+        const tabId = botao.getAttribute('data-tab');
+        ativarAba(tabId);
+      });
+    });
+
+    // =============================================================================
+    // COMUNICAÇÃO COM IFRAMES - CONFIGURAÇÕES
+    // =============================================================================
+
+    window.addEventListener('message', async (evento) => {
+      const { tipo, dados } = evento.data;
+      
+      console.log('[Index] Mensagem recebida:', tipo);
+      console.log('[Index] ========================================');
+      console.log('[Index] Mensagem recebida do iframe:');
+      console.log('[Index] - Tipo:', tipo);
+      console.log('[Index] - Dados:', dados);
+      console.log('[Index] ========================================');
+
+      switch (tipo) {
+        
+        // ===== CARREGAR CONFIGURAÇÕES =====
+        case 'carregar-configuracoes':
+          try {
+            const config = await ipcRenderer.invoke('carregar-configuracoes');
+            evento.source.postMessage({
+              tipo: 'resposta-carregar-configuracoes',
+              dados: config,
+              sucesso: true
+            }, '*');
+          } catch (erro) {
+            console.error('[Index] Erro ao carregar config:', erro);
+            evento.source.postMessage({
+              tipo: 'resposta-carregar-configuracoes',
+              dados: null,
+              sucesso: false,
+              erro: erro.message
+            }, '*');
+          }
+          break;
+
+        // ===== SALVAR CONFIGURAÇÕES =====
+        case 'salvar-configuracoes':
+          try {
+            const resultado = await ipcRenderer.invoke('salvar-configuracoes', dados);
+            evento.source.postMessage({
+              tipo: 'resposta-salvar-configuracoes',
+              dados: resultado,
+              sucesso: true
+            }, '*');
+          } catch (erro) {
+            console.error('[Index] Erro ao salvar config:', erro);
+            evento.source.postMessage({
+              tipo: 'resposta-salvar-configuracoes',
+              dados: null,
+              sucesso: false,
+              erro: erro.message
+            }, '*');
+          }
+          break;
+
+        // ===== SELECIONAR DIRETÓRIO =====
+        case 'selecionar-diretorio':
+          try {
+            const caminho = await ipcRenderer.invoke('selecionar-diretorio');
+            evento.source.postMessage({
+              tipo: 'resposta-selecionar-diretorio',
+              dados: caminho,
+              sucesso: true
+            }, '*');
+          } catch (erro) {
+            console.error('[Index] Erro ao selecionar diretório:', erro);
+            evento.source.postMessage({
+              tipo: 'resposta-selecionar-diretorio',
+              dados: null,
+              sucesso: false,
+              erro: erro.message
+            }, '*');
+          }
+          break;
+
+        // ===== RESETAR CONTADOR =====
+        case 'resetar-contador':
+          try {
+            await ipcRenderer.invoke('resetar-contador');
+            evento.source.postMessage({
+              tipo: 'resposta-resetar-contador',
+              sucesso: true
+            }, '*');
+          } catch (erro) {
+            console.error('[Index] Erro ao resetar contador:', erro);
+            evento.source.postMessage({
+              tipo: 'resposta-resetar-contador',
+              sucesso: false,
+              erro: erro.message
+            }, '*');
+          }
+          break;
+
+        // ===== BUSCAR ATAS =====
+        case 'buscar':
+          try {
+            console.log('[Index] >>> Processando busca-atas');
+            console.log('[Index] >>> Dados recebidos:', JSON.stringify(dados, null, 2));
+            console.log('[Index] Iniciando busca com dados:', dados);
+            
+            // Envia busca para o main process
+            ipcRenderer.send('buscar', dados);
+
+            console.log('[Index] >>> Busca enviada para main!');
+
+            // Confirma que busca foi iniciada
+            evento.source.postMessage({
+              tipo: 'resposta-buscar-atas',
+              sucesso: true
+            }, '*');
+
+            console.log('[Index] >>> Resposta enviada ao iframe');
+
+          } catch (erro) {
+            console.error('[Index] Erro ao iniciar busca:', erro);
+            evento.source.postMessage({
+              tipo: 'resposta-buscar-atas',
+              sucesso: false,
+              erro: erro.message
+            }, '*');
+          }
+          break;
+
+        // ===== FINALIZAR BUSCA =====
+        case 'finalizar-busca':
+          try {
+            console.log('[Index] Finalizando busca...');
+            ipcRenderer.send('finalizar-busca');
+            
+            evento.source.postMessage({
+              tipo: 'resposta-finalizar-busca',
+              sucesso: true
+            }, '*');
+          } catch (erro) {
+            console.error('[Index] Erro ao finalizar busca:', erro);
+            evento.source.postMessage({
+              tipo: 'resposta-finalizar-busca',
+              sucesso: false,
+              erro: erro.message
+            }, '*');
+          }
+          break;
+
+        // ===== DOWNLOAD ATA =====
+        case 'download-ata':
+          try {
+            console.log('[Index] Iniciando download da ata:', dados.idAtaPNCP);
+            ipcRenderer.send('download-ata', dados);
+            
+            evento.source.postMessage({
+              tipo: 'resposta-download-ata',
+              sucesso: true
+            }, '*');
+          } catch (erro) {
+            console.error('[Index] Erro ao iniciar download:', erro);
+            evento.source.postMessage({
+              tipo: 'resposta-download-ata',
+              sucesso: false,
+              erro: erro.message
+            }, '*');
+          }
+          break;
+
+        // ===== DOWNLOAD TODAS ATAS =====
+        case 'download-todas-atas':
+          try {
+            console.log('[Index] Iniciando download de todas as atas');
+            ipcRenderer.send('download-todas-atas', dados);
+            
+            evento.source.postMessage({
+              tipo: 'resposta-download-todas-atas',
+              sucesso: true
+            }, '*');
+          } catch (erro) {
+            console.error('[Index] Erro ao iniciar download em lote:', erro);
+            evento.source.postMessage({
+              tipo: 'resposta-download-todas-atas',
+              sucesso: false,
+              erro: erro.message
+            }, '*');
+          }
+          break;
+
+        case 'obter-tema':
+          // Responde com tema atual
+          evento.source.postMessage({
+            tipo: 'mudar-tema',
+            tema: temaDark ? 'dark' : 'light'
+          }, '*');
+          console.log('[Index] Tema atual enviado para iframe:', temaDark ? 'dark' : 'light');
+          break;
+
+        default:
+          console.warn('[Index] Tipo de mensagem desconhecido:', tipo);
+      }
+    });
+
+    // =============================================================================
+    // LISTENERS DE RESPOSTAS DO MAIN PROCESS
+    // =============================================================================
+
+    /**
+     * Estes listeners recebem respostas do main.js e encaminham para o iframe
+     */
+
+    // Progresso da busca
+    ipcRenderer.on('busca-progresso', (evento, dados) => {
+      if (downloadIframe && downloadIframe.contentWindow) {
+        downloadIframe.contentWindow.postMessage({
+          tipo: 'busca-progresso',
+          dados: dados
+        }, '*');
+      }
+    });
+
+    // Resultado da busca
+    ipcRenderer.on('atas-encontradas', (evento, dados) => {
+      console.log('[Index] Resultado da busca recebido:', dados.atas?.length, 'atas');
+      if (downloadIframe && downloadIframe.contentWindow) {
+        downloadIframe.contentWindow.postMessage({
+          tipo: 'atas-encontradas',
+          dados: dados
+        }, '*');
+      }
+    });
+
+    // Erro na busca
+    ipcRenderer.on('erro-busca', (evento, dados) => {
+      console.error('[Index] Erro na busca:', dados);
+      if (downloadIframe && downloadIframe.contentWindow) {
+        downloadIframe.contentWindow.postMessage({
+          tipo: 'erro-busca',
+          dados: dados
+        }, '*');
+      }
+    });
+
+    // Busca finalizada
+    ipcRenderer.on('busca-finalizada', (evento, dados) => {
+      console.log('[Index] Busca finalizada');
+      if (downloadIframe && downloadIframe.contentWindow) {
+        downloadIframe.contentWindow.postMessage({
+          tipo: 'busca-finalizada',
+          dados: dados
+        }, '*');
+      }
+    });
+
+    // Progresso do download
+    ipcRenderer.on('download-ata-progresso', (evento, dados) => {
+      if (downloadIframe && downloadIframe.contentWindow) {
+        downloadIframe.contentWindow.postMessage({
+          tipo: 'download-ata-progresso',
+          dados: dados
+        }, '*');
+      }
+    });
+
+    // Download de todas finalizado
+    ipcRenderer.on('download-todas-finalizado', (evento, dados) => {
+      console.log('[Index] Download de todas finalizado');
+      if (downloadIframe && downloadIframe.contentWindow) {
+        downloadIframe.contentWindow.postMessage({
+          tipo: 'download-todas-finalizado',
+          dados: dados
+        }, '*');
+      }
+    });
+
+    // =============================================================================
+    // INICIALIZAÇÃO
+    // =============================================================================
+
+    function iniciar() {
+      carregarTema();
+      
+      const abaAtiva = localStorage.getItem('abaAtiva') || 'download';
+      ativarAba(abaAtiva);
+      
+      botaoTema.addEventListener('click', alternarTema);
+      
+      // Quando iframes carregarem, envia tema inicial
+      downloadIframe.addEventListener('load', () => {
+        console.log('[Index] Download iframe carregado');
+        setTimeout(() => {
+          propagarTema();
+        }, 100);
+      });
+
+      configIframe.addEventListener('load', () => {
+        console.log('[Index] Config iframe carregado');
+        setTimeout(() => {
+          propagarTema();
+        }, 100);
+      });
+      
+      console.log('[Index] Sistema iniciado');
+    }
+
+    iniciar();
+  </script>
+</body>
+</html>

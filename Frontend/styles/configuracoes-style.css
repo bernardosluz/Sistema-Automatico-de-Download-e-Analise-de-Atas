@@ -1,0 +1,408 @@
+/* =============================================================================
+   ESTILOS ESPECÍFICOS DA PÁGINA DE CONFIGURAÇÕES
+   ============================================================================= */
+
+body {
+  padding: 0;
+  margin: 0;
+  background: #f5f5f5;
+  overflow-y: auto;
+}
+
+[data-theme="dark"] body {
+  background: #1a1a1a;
+}
+
+/* =============================================================================
+   CONTAINER PRINCIPAL
+   ============================================================================= */
+
+.container {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 30px;
+  background: white;
+  min-height: 100vh;
+}
+
+[data-theme="dark"] .container {
+  background: #2a2a2a;
+}
+
+/* =============================================================================
+   CABEÇALHO
+   ============================================================================= */
+
+h1 {
+  color: #333;
+  margin-bottom: 30px;
+  font-size: 24px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+[data-theme="dark"] h1 {
+  color: #e0e0e0;
+}
+
+/* =============================================================================
+   SEÇÕES
+   ============================================================================= */
+
+.secao {
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #eee;
+}
+
+[data-theme="dark"] .secao {
+  border-bottom-color: #444;
+}
+
+.secao:last-child {
+  border-bottom: none;
+}
+
+/* =============================================================================
+   LABELS E INPUTS
+   ============================================================================= */
+
+label {
+  display: block;
+  margin-bottom: 8px;
+  color: #555;
+  font-weight: 500;
+  font-size: 15px;
+}
+
+[data-theme="dark"] label {
+  color: #ccc;
+}
+
+.input-group {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+input[type="text"] {
+  flex: 1;
+  padding: 12px 15px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  background: white;
+  color: #333;
+}
+
+[data-theme="dark"] input[type="text"] {
+  background: #1a1a1a;
+  border-color: #444;
+  color: #e0e0e0;
+}
+
+input[type="text"]:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+input[type="text"]:read-only {
+  background: #f8f9fa;
+  cursor: not-allowed;
+}
+
+[data-theme="dark"] input[type="text"]:read-only {
+  background: #252525;
+}
+
+/* =============================================================================
+   BOTÕES
+   ============================================================================= */
+
+button {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-primario {
+  background: #007bff;
+  color: white;
+}
+
+.btn-primario:hover {
+  background: #0056b3;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+}
+
+.btn-primario:active {
+  transform: translateY(0);
+}
+
+.btn-secundario {
+  background: #6c757d;
+  color: white;
+}
+
+.btn-secundario:hover {
+  background: #545b62;
+  transform: translateY(-1px);
+}
+
+.btn-secundario:active {
+  transform: translateY(0);
+}
+
+/* =============================================================================
+   OPÇÕES DE ORGANIZAÇÃO
+   ============================================================================= */
+
+.opcoes-organizacao {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 15px;
+}
+
+.opcao {
+  display: flex;
+  align-items: flex-start;
+  padding: 18px;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+[data-theme="dark"] .opcao {
+  background: #1a1a1a;
+  border-color: #444;
+}
+
+.opcao:hover {
+  border-color: #007bff;
+  background: #f8f9fa;
+  transform: translateX(4px);
+}
+
+[data-theme="dark"] .opcao:hover {
+  background: #252525;
+}
+
+.opcao.selecionada {
+  border-color: #007bff;
+  background: #e7f3ff;
+  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.2);
+}
+
+[data-theme="dark"] .opcao.selecionada {
+  background: #1a3a5c;
+  border-color: #4d94ff;
+}
+
+.opcao input[type="radio"] {
+  margin-right: 12px;
+  margin-top: 3px;
+  width: 20px;
+  height: 20px;
+  accent-color: #007bff;
+  cursor: pointer;
+}
+
+.opcao-conteudo h3 {
+  color: #333;
+  font-size: 16px;
+  margin-bottom: 5px;
+  font-weight: 600;
+}
+
+[data-theme="dark"] .opcao-conteudo h3 {
+  color: #e0e0e0;
+}
+
+.opcao-conteudo p {
+  color: #666;
+  font-size: 13px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+[data-theme="dark"] .opcao-conteudo p {
+  color: #aaa;
+}
+
+/* =============================================================================
+   INFO BOX
+   ============================================================================= */
+
+.info {
+  background: #fff3cd;
+  border: 1px solid #ffc107;
+  padding: 12px 15px;
+  border-radius: 6px;
+  color: #856404;
+  font-size: 13px;
+  margin-top: 10px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+[data-theme="dark"] .info {
+  background: #3a3000;
+  border-color: #ffd33d;
+  color: #ffd33d;
+}
+
+/* =============================================================================
+   CONTADOR DE ATAS
+   ============================================================================= */
+
+.contador-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f8f9fa;
+  padding: 15px;
+  border-radius: 6px;
+  margin-top: 15px;
+}
+
+[data-theme="dark"] .contador-info {
+  background: #252525;
+}
+
+.contador-info span {
+  font-size: 14px;
+  color: #555;
+}
+
+[data-theme="dark"] .contador-info span {
+  color: #ccc;
+}
+
+.contador-info strong {
+  color: #007bff;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+[data-theme="dark"] .contador-info strong {
+  color: #4d94ff;
+}
+
+/* =============================================================================
+   BOTÕES DE AÇÃO
+   ============================================================================= */
+
+.acoes {
+  display: flex;
+  gap: 10px;
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid #eee;
+}
+
+[data-theme="dark"] .acoes {
+  border-top-color: #444;
+}
+
+.acoes button {
+  flex: 1;
+}
+
+/* =============================================================================
+   MENSAGENS
+   ============================================================================= */
+
+.mensagem {
+  padding: 12px 15px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  display: none;
+  animation: slideDown 0.3s ease;
+  font-size: 14px;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.mensagem.sucesso {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+[data-theme="dark"] .mensagem.sucesso {
+  background: #1a3a2a;
+  color: #4ade80;
+  border-color: #2a5a3a;
+}
+
+.mensagem.erro {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+[data-theme="dark"] .mensagem.erro {
+  background: #3a1a1a;
+  color: #f87171;
+  border-color: #5a2a2a;
+}
+
+/* =============================================================================
+   RESPONSIVO
+   ============================================================================= */
+
+@media (max-width: 768px) {
+  .container {
+    padding: 20px 15px;
+  }
+
+  h1 {
+    font-size: 20px;
+  }
+
+  .input-group {
+    flex-direction: column;
+  }
+
+  .acoes {
+    flex-direction: column;
+  }
+
+  .contador-info {
+    flex-direction: column;
+    gap: 10px;
+    text-align: center;
+  }
+
+  .opcao {
+    padding: 15px;
+  }
+
+  .opcao:hover {
+    transform: none;
+  }
+}

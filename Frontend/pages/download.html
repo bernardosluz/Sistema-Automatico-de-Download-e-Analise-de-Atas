@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Download - SADA-ATA</title>
+  <link rel="stylesheet" href="../styles/style.css">
+  <link rel="stylesheet" href="../styles/download-style.css">
+</head>
+<body>
+  
+  <!-- ========== ÁREA DE STATUS (FILTRO) ========== -->
+  <div class="status-container">
+    <div class="status-buttons-container">
+      <label class="status-label">Status:</label>
+      <div class="status-buttons">
+        <button class="status-btn active" data-status="vigente">Vigente</button>
+        <button class="status-btn" data-status="nao_vigente">Não Vigente</button>
+        <button class="status-btn" data-status="todos">Todos</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== CONTEÚDO PRINCIPAL ========== -->
+  <main class="download-main">
+    <div class="search-section">
+      
+      <!-- ========== SEÇÃO DE FILTROS ========== -->
+      <div class="filters-section">
+        
+        <!-- === FILTRO DE ESFERAS === -->
+        <div class="filter-group">
+          <button class="filter-btn" id="esfera-filter-btn">
+            <span>Esferas</span>
+            <span class="arrow">▼</span>
+          </button>
+          <div class="filter-dropdown" id="esfera-dropdown">
+            <label class="filter-option">
+              <input type="checkbox" value="distrital" class="esfera-checkbox">
+              <span>Distrital</span>
+            </label>
+            <label class="filter-option">
+              <input type="checkbox" value="estadual" class="esfera-checkbox">
+              <span>Estadual</span>
+            </label>
+            <label class="filter-option">
+              <input type="checkbox" value="federal" class="esfera-checkbox">
+              <span>Federal</span>
+            </label>
+            <label class="filter-option">
+              <input type="checkbox" value="municipal" class="esfera-checkbox">
+              <span>Municipal</span>
+            </label>
+          </div>
+        </div>
+        
+        <!-- === FILTRO DE UFs === -->
+        <div class="filter-group">
+          <button class="filter-btn" id="uf-filter-btn">
+            <span>UFs</span>
+            <span class="arrow">▼</span>
+          </button>
+          <div class="filter-dropdown" id="uf-dropdown">
+            <label class="filter-option">
+              <input type="checkbox" value="AC" class="uf-checkbox">
+              <span>Acre</span>
+            </label>
+            <label class="filter-option">
+              <input type="checkbox" value="AL" class="uf-checkbox">
+              <span>Alagoas</span>
+            </label>
+            <label class="filter-option">
+              <input type="checkbox" value="AP" class="uf-checkbox">
+              <span>Amapá</span>
+            </label>
+            <label class="filter-option">
+              <input type="checkbox" value="AM" class="uf-checkbox">
+              <span>Amazonas</span>
+            </label>
+            <label class="filter-option">
+              <input type="checkbox" value="BA" class="uf-checkbox">
+              <span>Bahia</span>
+            </label>
+            <label class="filter-option">
+              <input type="checkbox" value="CE" class="uf-checkbox">
+              <span>Ceará</span>
+            </label>
+            <label class="filter-option">
+              <input type="checkbox" value="DF" class="uf-checkbox">
+              <span>Distrito Federal</span>
+            </label>
+            <label class="filter-option">
+              <input type="checkbox" value="ES" class="uf-checkbox">
+              <span>Espírito Santo</span>
+            </label>
+            <label class="filter-option">
+              <input type="checkbox" value="GO" class="uf-checkbox">
+              <span>Goiás</span>
+            </label>
+            <label class="filter-option">
+              <input type="checkbox" value="MA" class="uf-checkbox">
+              <span>Maranhão</span>
+            </label>
+            <label class="filter-option">
+              <input type="checkbox" value="MT" class="uf-checkbox">
+              <span>Mato Grosso</span>
+            </label>
+            <label class="filter-option">
+              <input type="checkbox" value="MS" class="uf-checkbox">
+              <span>Mato Grosso do Sul</span>
+            </label>
+            <label class="filter-option">
+              <input type="checkbox" value="MG" class="uf-checkbox">
+              <span>Minas Gerais</span>
+            </label>
+            <label class="filter-option">
+              <input type="checkbox" value="PA" class="uf-checkbox">
+              <span>Pará</span>
+            </label>
+            <label class="filter-option">
+              <input type="checkbox" value="PB" class="uf-checkbox">
+              <span>Paraíba</span>
+            </label>
+            <label class="filter-option">
+              <input type="checkbox" value="PR" class="uf-checkbox">
+              <span>Paraná</span>
+            </label>
+            <label class="filter-option">
+              <input type="checkbox" value="PE" class="uf-checkbox">
+              <span>Pernambuco</span>
+            </label>
+            <label class="filter-option">
+              <input type="checkbox" value="PI" class="uf-checkbox">
+              <span>Piauí</span>
+            </label>
+            <label class="filter-option">
+              <input type="checkbox" value="RJ" class="uf-checkbox">
+              <span>Rio de Janeiro</span>
+            </label>
+            <label class="filter-option">
+              <input type="checkbox" value="RN" class="uf-checkbox">
+              <span>Rio Grande do Norte</span>
+            </label>
+            <label class="filter-option">
+              <input type="checkbox" value="RS" class="uf-checkbox">
+              <span>Rio Grande do Sul</span>
+            </label>
+            <label class="filter-option">
+              <input type="checkbox" value="RO" class="uf-checkbox">
+              <span>Rondônia</span>
+            </label>
+            <label class="filter-option">
+              <input type="checkbox" value="RR" class="uf-checkbox">
+              <span>Roraima</span>
+            </label>
+            <label class="filter-option">
+              <input type="checkbox" value="SC" class="uf-checkbox">
+              <span>Santa Catarina</span>
+            </label>
+            <label class="filter-option">
+              <input type="checkbox" value="SP" class="uf-checkbox">
+              <span>São Paulo</span>
+            </label>
+            <label class="filter-option">
+              <input type="checkbox" value="SE" class="uf-checkbox">
+              <span>Sergipe</span>
+            </label>
+            <label class="filter-option">
+              <input type="checkbox" value="TO" class="uf-checkbox">
+              <span>Tocantins</span>
+            </label>
+          </div>
+        </div>
+        
+        <!-- === FILTRO DE ÓRGÃOS === -->
+        <div class="filter-group">
+          <button class="filter-btn" id="orgao-filter-btn">
+            <span>Órgãos</span>
+            <span class="arrow">▼</span>
+          </button>
+          <div class="filter-dropdown" id="orgao-dropdown">
+            <label class="filter-option">
+              <input type="checkbox" value="ministerio da justica e seguranca publica" class="orgao-checkbox">
+              <span>Ministério da Justiça e Segurança Pública</span>
+            </label>
+            <label class="filter-option">
+              <input type="checkbox" value="ministerio da saude" class="orgao-checkbox">
+              <span>Ministério da Saúde</span>
+            </label>
+            <label class="filter-option">
+              <input type="checkbox" value="ministerio da educacao" class="orgao-checkbox">
+              <span>Ministério da Educação</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Container dos badges dos filtros ativos -->
+        <div id="active-filters"></div>
+      </div>
+
+      <!-- ========== CAMPO DE BUSCA ========== -->
+      <div class="search-box">
+        <input 
+          type="text" 
+          id="search-input" 
+          placeholder="Digite o número da ata, CNPJ do órgão ou palavra-chave..."
+        >
+        <button id="clear-btn" class="clear-btn" title="Limpar">✕</button>
+      </div>
+
+      <!-- ========== BOTÕES DE AÇÃO ========== -->
+      <button id="search-btn" class="search-btn">
+        <span>🔍</span>
+        <span>Buscar</span>
+      </button>
+      <button id="stop-btn" class="stop-btn" title="Finalizar busca">
+        <span>⏹</span>
+        <span>Finalizar</span>
+      </button>
+    </div>
+
+    <!-- ========== INDICADOR DE CARREGAMENTO ========== -->
+    <div id="loading" class="loading">
+      <div class="spinner"></div>
+      <p>Buscando atas em todas as páginas...</p>
+    </div>
+
+    <!-- ========== ÁREA DE RESULTADOS ========== -->
+    <div id="result" class="result"></div>
+  </main>
+
+  <!-- Container de notificações toast -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- 1. Primeiro carrega o bridge -->
+  <script src="iframe-bridge.js"></script>
+
+  <!-- 2. Depois inicializa tema -->
+  <script>
+    console.log('[Download] Inicializando bridge...');
+    if (window.iframeBridge) {
+      window.iframeBridge.inicializarTema();
+      console.log('[Download] Bridge inicializado com sucesso');
+    } else {
+      console.error('[Download] Bridge não encontrado!');
+    }
+  </script>
+
+  <!-- 3. Por último, carrega o renderer (que usa o bridge) -->
+  <!-- Importa o JavaScript -->
+  <script type="module" src="../renderer.js"></script>
+</body>
+</html>
