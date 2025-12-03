@@ -53,6 +53,15 @@ class DownloadAtaService {
         // Obter os dados da ata já baixada
         const dadosAta = progressService.obterAta(idAtaPNCP);
 
+        logService.progressService({
+        idAtaPNCP: idAtaPNCP,
+        numeroAta: numeroAta,
+        link: dadosAta.link,
+        pasta: dadosAta.pasta,
+        arquivos: dadosAta.arquivosBaixados,
+        sucesso: true,
+      });
+
         // Retorna o objeto já baixado
         return {
           sucesso: true,
@@ -105,12 +114,10 @@ class DownloadAtaService {
         } catch (erro) {
           // Se for 404, provavelmente não há mais arquivos
           if (erro.message === "404") {
-            console.log(`[Download Ata] Arquivo ${numeroArquivo} não encontrado (404)`);
             tentativasFalhas++;
           }
           // Se arquivo já existe, conta como sucesso e pula
           else if (erro.message === "FILE_EXISTS") {
-            console.log(`[Download Ata] Arquivo ${numeroArquivo} já existe, pulando...`);
             arquivosBaixados.push({
               numero: numeroArquivo,
               nome: `arquivo_${numeroArquivo}.pdf`,
@@ -143,8 +150,20 @@ class DownloadAtaService {
           arquivos: [],
           sucesso: false,
           mensagemErro: 'Nenhum arquivo encontrado para esta ata'
-        })
+        });
+
         await progressService.save();
+        
+        // Registra no log
+        logService.registrarAta({
+          idAtaPNCP: idAtaPNCP,
+          numeroAta: numeroAta,
+          link: construirUrlPublica(parts),
+          pasta: caminhos.organizado || caminhos.direto,
+          arquivos: [],
+          sucesso: false,
+          mensagemErro: 'Nenhum arquivo encontrado para esta ata'
+        });
 
         return {
           sucesso: false,
@@ -165,9 +184,18 @@ class DownloadAtaService {
         pasta: caminhos.organizado || caminhos.direto,
         arquivos: arquivosBaixados,
         sucesso: true,
-      })
+      });
 
       await progressService.save();
+
+      logService.registrarAta({
+        idAtaPNCP: idAtaPNCP,
+        numeroAta: numeroAta,
+        link: construirUrlPublica(parts),
+        pasta: caminhos.organizado || caminhos.direto,
+        arquivos: arquivosBaixados,
+        sucesso: true
+      });
 
       return {
         sucesso: true,
@@ -200,8 +228,19 @@ class DownloadAtaService {
           arquivos: [],
           sucesso: false,
           mensagemErro: `Erro: ${erro.message}`
-        })
+        });
+
       await progressService.save();
+
+      logService.progressService({
+        idAtaPNCP: idAtaPNCP,
+        numeroAta: numeroAta,
+        link: linkPublico,
+        pasta: null,
+        arquivos: [],
+        sucesso: false,
+        mensagemErro: `Erro: ${erro.message}`
+      });
 
       // Retorna erro
       return {

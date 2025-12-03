@@ -75,6 +75,10 @@ class LogService {
         // Separador visual
         linhas.push('───────────────────────────────────────────────────────────────');
         
+        if(dadosAta.idAtaPNCP) {
+            linhas.push(`Ata Processada: ${dadosAta.idAtaPNCP}`);
+        }
+
         // Se tem pasta, mostra
         if (dadosAta.pasta) {
             linhas.push(`Pasta: ${dadosAta.pasta}`);
@@ -93,7 +97,6 @@ class LogService {
             dadosAta.arquivos.forEach((arquivo, index) => {
                 const numero = `[${index + 1}]`.padEnd(5);
                 const tamanho = this._formatarTamanho(arquivo.tamanho);
-                
                 let linha = `  ${numero}${arquivo.nome}`;
                 if (arquivo.tamanho) {
                     linha += ` (${tamanho})`;
@@ -107,13 +110,17 @@ class LogService {
             
             // Indicador de fim
             const proximoNumero = `[${dadosAta.arquivos.length + 1}]`.padEnd(5);
-            linhas.push(`  ${proximoNumero}Fim dos arquivos (404)`);
+            // Resumo Final
+            const totalArquivos = dadosAta.arquivos.length;
+            const tamanhoTotal = dadosAta.arquivos.reduce((soma, arq) => soma + (arq.tamanho || 0), 0);
+            linhas.push(`    Resumo: ${totalArquivos} arquivo(s), ${this._formatarTamanho(tamanhoTotal)}`);
+
         } else if (dadosAta.sucesso === false) {
             // Erro
             linhas.push(`  [!] ERRO: ${dadosAta.mensagemErro || 'Falha no processamento'}`);
         } else {
             // Nenhum arquivo encontrado
-            linhas.push(`  [1] Fim dos arquivos (404)`);
+            linhas.push(`  [1] Sem Arquivos para essa ata`);
         }
         
         linhas.push(''); // Linha em branco
@@ -194,7 +201,7 @@ class LogService {
      */
     finalizar() {
         this.flush();
-        console.log('[Log] ✓ Finalizado:', this.logFile);
+        console.log('[Log] Finalizado:', this.logFile);
         return this.logFile;
     }
 

@@ -35,7 +35,10 @@ class ProgressService {
         console.log('[Progress] Re-inicializando com novo diretório...');
         
         // Limpar dados antigos
-        this.dados = null;
+        this.dados = {
+            atasProcessadas: [],
+            ultimaAtualizacao: null
+        };
         
         // Inicializa com novo caminho
         this.inicializar(diretorioDownload);
