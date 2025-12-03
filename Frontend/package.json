@@ -1,0 +1,24 @@
+{
+  "name": "sistema-download-atas-pncp",
+  "version": "1.0.0",
+  "description": "Sistema de download automático de atas do PNCP",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --no-sandbox"
+  },
+  "keywords": [
+    "electron",
+    "pncp",
+    "download",
+    "atas"
+  ],
+  "author": "Bernardo",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^39.2.4"
+  },
+  "dependencies": {
+    "puppeteer": "^24.31.0"
+  }
+}

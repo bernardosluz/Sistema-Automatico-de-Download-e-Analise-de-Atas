@@ -126,7 +126,6 @@ ipcMain.handle('carregar-configuracoes', async () => {
  * Handler: Salvar configurações
  */
 ipcMain.handle('salvar-configuracoes', async (event, config) => {
-  console.log('[Main] Salvando configurações');
 
   // VALIDAÇÃO: Valida objeto de configuração
   const validacaoConfig = validar.validarConfiguracao(config);
@@ -144,8 +143,23 @@ ipcMain.handle('salvar-configuracoes', async (event, config) => {
     }
   }
 
-  console.log('[Main] Configurações válidas, salvando...');
-  return await configService.atualizarConfiguracoes(config);
+  // Armazenar os dados antigos antes de salvar
+  const configAntiga = await configService.carregarConfiguracoes();
+
+  // Salva as novas configurações
+  const resultado = await configService.atualizarConfiguracoes(config);
+
+  // Verifica se o diretório mudou
+  const dirMudou = configAntiga.diretorioDownload  !== resultado.diretorioDownload;
+
+  if(dirMudou) {
+    try{
+      await servicoDownloadAta.inicializarServicos();
+    } catch (erro) {
+      console.error('[Main] Erro ao re-inicializar: ', erro.message);
+    }
+  }
+  return resultado;
 });
 
 /**
@@ -286,8 +300,6 @@ ipcMain.on('download-ata', async (evento, dados) => {
 
     const { idAtaPNCP, numeroAta } = dados;
 
-    console.log('[Main] Download validado:', idAtaPNCP);
-
     // VALIDAÇÃO: Valida sistema para download
     const validacaoSistema = await validar.validarSistemaParaDownload();
     if (!validacaoSistema.valido) {
@@ -300,14 +312,15 @@ ipcMain.on('download-ata', async (evento, dados) => {
       return;
     }
 
-    console.log('[Main] Sistema validado para download');
-
     // Envia status inicial
     evento.reply('download-ata-progresso', {
       idAtaPNCP,
       status: 'baixando',
       mensagem: 'Iniciando download...'
     });
+
+    // Carrega dados para verificar se já foi baixado
+    await servicoDownloadAta.inicializarServicos();
 
     // Executa download (dados já validados)
     const resultado = await servicoDownloadAta.baixarAta(idAtaPNCP, numeroAta);
@@ -335,7 +348,8 @@ ipcMain.on('download-ata', async (evento, dados) => {
  * Handler: Download de todas as atas em lote
  */
 ipcMain.on('download-todas-atas', async (evento, dados) => {
-  console.log('[Main] Download em lote solicitado');
+
+  const { atas } = dados;
 
   try {
     // VALIDAÇÃO: Valida dados de download em lote
@@ -344,10 +358,6 @@ ipcMain.on('download-todas-atas', async (evento, dados) => {
       enviarErro(evento, 'download-todas-finalizado', validacaoDados.erro);
       return;
     }
-
-    const { atas } = dados;
-
-    console.log('[Main] Download em lote validado:', atas.length, 'atas');
 
     // VALIDAÇÃO: Valida sistema para download
     const validacaoSistema = await validar.validarSistemaParaDownload();
@@ -365,16 +375,16 @@ ipcMain.on('download-todas-atas', async (evento, dados) => {
     // VALIDAÇÃO: Valida quantidade de downloads
     const validacaoQtd = validar.validarQuantidadeDownloads(atas.length);
     if (!validacaoQtd.valido && validacaoQtd.tipo === 'confirmacao') {
-      // Aqui você pode implementar um dialog de confirmação se quiser
-      console.log('[Main] Aviso:', validacaoQtd.mensagem);
+      // AImplementar um dialog de confirmação se eu achar necessário
     }
-
-    console.log('[Main] Sistema validado para download em lote');
 
     // Callback de progresso
     const callbackProgresso = (progresso) => {
       evento.reply('download-ata-progresso', progresso);
     };
+
+    // Carrega dados para verificar se já foi baixado
+    await servicoDownloadAta.inicializarServicos();
 
     // Executa download em lote (dados já validados)
     const resultados = await servicoDownloadAta.baixarAtas(atas, callbackProgresso);
@@ -382,14 +392,11 @@ ipcMain.on('download-todas-atas', async (evento, dados) => {
     // Envia resultado final
     evento.reply('download-todas-finalizado', resultados);
 
-    console.log('[Main] Download em lote concluído:', resultados.sucesso, 'sucessos,', resultados.erros, 'erros');
-
   } catch (erro) {
-    console.error('[Main] Erro no download em lote:', erro);
     evento.reply('download-todas-finalizado', {
-      total: dados?.atas?.length || 0,
+      total: atas?.length || 0,
       sucesso: 0,
-      erros: dados?.atas?.length || 0,
+      erros: atas?.length || 0,
       mensagem: erro.message
     });
   }

@@ -25,7 +25,23 @@ class ProgressService {
         }
         
         this.progressFile = path.join(diretorioDownload, '.progress.json');
-        console.log('[Progress] Inicializado:', this.progressFile);
+    }
+
+    /**
+     * Re-inicializa o serviço (limpa dados antigos e carrega novos)
+     * @param {string} diretorioDownload - Novo diretório
+     */
+    async reinicializar(diretorioDownload) {
+        console.log('[Progress] Re-inicializando com novo diretório...');
+        
+        // Limpar dados antigos
+        this.dados = null;
+        
+        // Inicializa com novo caminho
+        this.inicializar(diretorioDownload);
+        
+        // Carrega (ou cria novo) JSON
+        await this.load();
     }
 
     /**
@@ -37,19 +53,17 @@ class ProgressService {
             throw new Error('ProgressService não inicializado. Chame inicializar() primeiro.');
         }
 
+        // Progresso salvo
         try {
             if (fsSync.existsSync(this.progressFile)) {
                 const conteudo = await fs.readFile(this.progressFile, 'utf8');
                 this.dados = JSON.parse(conteudo);
-                
-                console.log(`[Progress] ✓ Carregado: ${this.dados.atasProcessadas.length} atas já processadas`);
                 return this.dados;
             }
         } catch (erro) {
             console.error('[Progress] ⚠ Erro ao carregar, iniciando do zero:', erro.message);
         }
-
-        console.log('[Progress] → Nenhum progresso anterior, iniciando do zero');
+        // Sem nenhum progresso
         this.dados = {
             atasProcessadas: [],
             ultimaAtualizacao: null
