@@ -10,6 +10,21 @@ const configService = require('./config.service');
  */
 class DownloadAtaService {
 
+  // Flag para cancelar
+  constructor(){
+    this.deveCancelarLote = false;
+  }
+
+  // Cancela o Download de Baixar todas de forma segura
+  cancelarDownloadLote(){
+    this.deveCancelarLote = true;
+  }
+
+  // Reseta a flag de cancelamento
+  resetarCancelamento() {
+    this.deveCancelarLote = false;
+  }
+
   /**
      * Inicializa os serviços de progresso e log
      * DEVE SER CHAMADO ANTES DE COMEÇAR OS DOWNLOADS
@@ -255,23 +270,29 @@ class DownloadAtaService {
   }
 
   /**
- * Baixa múltiplas atas
+ * Baixa múltiplas atas com suporte de cancelamento seguro
  * @param {Array} atas - Array de atas a baixar [{idAtaPNCP, numeroAta}, ...]
  * @param {Function} progressCallback - Callback de progresso
  * @returns {Promise<Object>} Resultado do download
  */
 async baixarAtas(atas, progressCallback) {
-  console.log(`[Download Ata] Iniciando download de ${atas.length} atas`);
 
   const resultados = {
     total: atas.length,
     sucesso: 0,
     erros: 0,
-    jaBaixadas: 0, // Nova categoria para contabilizar
+    jaBaixadas: 0,
+    cancelamento: false,
     detalhes: []
   };
 
   for (let i = 0; i < atas.length; i++) {
+
+    if(this.deveCancelarLote){
+      resultados.cancelado = true;
+      break;
+    }
+    
     const ata = atas[i];
 
     try {

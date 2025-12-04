@@ -402,6 +402,25 @@ ipcMain.on('download-todas-atas', async (evento, dados) => {
   }
 });
 
+/**
+ * Handler: Cancelar download de forma segura
+ */
+ipcMain.on('cancelar-download-lote', async (evento) => {
+  try {
+    servicoDownloadAta.cancelarDownloadLote();
+    evento.reply('download-lote-cancelado', { 
+      sucesso: true,
+      mensagem: 'Cancelamento solicitado. Aguarde finalização segura...'
+    });
+  } catch (erro) {
+    evento.reply('download-lote-cancelado', { 
+      sucesso: false,
+      mensagem: erro.message
+    });
+  }
+});
+
+
 // =============================================================================
 // CICLO DE VIDA DO APP
 // =============================================================================

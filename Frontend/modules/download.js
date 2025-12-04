@@ -8,9 +8,10 @@ import { estado } from './dom.js';
 import { ipcRenderer } from './bridge.js';
 import { mostrarToast } from './toasts.js';
 
-export function baixarAta(idAtaPNCP, numeroAta) {
-  console.log('[Download] Ata:', idAtaPNCP);
-  
+// Flag para controlar se baixar todas está ativo
+let downloadLoteAtivo = false;
+
+export function baixarAta(idAtaPNCP, numeroAta) {  
   const divStatus = document.getElementById(`status-${idAtaPNCP}`);
   if (divStatus) {
     divStatus.innerHTML = '<span class="download-status downloading">⏳ Baixando...</span>';
@@ -25,7 +26,8 @@ export function baixarTodasAtas() {
     return;
   }
   
-  console.log('[Download] Todas:', estado.todasAsAtasEncontradas.length);
+  // Ativa flag de download em lote
+  downloadLoteAtivo = true;
   
   window.downloadEmProgresso = {
     total: estado.todasAsAtasEncontradas.length,
@@ -46,8 +48,53 @@ export function baixarTodasAtas() {
     botao.parentElement.appendChild(divProgresso);
   }
   
+  // Adiciona botão de cancelar
+  const botaoCancelar = document.createElement('button');
+  botaoCancelar.className = 'cancel-download-btn';
+  botaoCancelar.id = 'cancel-download-btn';
+  botaoCancelar.innerHTML = `
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <circle cx="12" cy="12" r="10"/>
+      <line x1="15" y1="9" x2="9" y2="15"/>
+      <line x1="9" y1="9" x2="15" y2="15"/>
+    </svg>
+    <span>Cancelar Download</span>
+  `;
+  botaoCancelar.onclick = cancelarDownloadLote;
+  
+  if (botao && botao.parentElement) {
+    botao.parentElement.appendChild(botaoCancelar);
+  }
+
   ipcRenderer.send('download-todas-atas', { atas: estado.todasAsAtasEncontradas });
 }
+
+
+// Função para cancelar download em lote
+export function cancelarDownloadLote() {
+  if (!downloadLoteAtivo) {
+    return;
+  }
+
+  const botaoCancelar = document.getElementById('cancel-download-btn');
+  if (botaoCancelar) {
+    botaoCancelar.disabled = true;
+    botaoCancelar.innerHTML = `
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="12" y1="8" x2="12" y2="12"/>
+        <line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      <span>Cancelando...</span>
+    `;
+  }
+
+  // Envia comando de cancelamento
+  ipcRenderer.send('cancelar-download-lote');
+  
+  mostrarToast('info', 'Cancelando', 'Aguardando finalização segura...', 3000);
+}
+
 
 export function atualizarDownloadAta(evento, dados) {
   const { idAtaPNCP, status, mensagem } = dados;
@@ -83,19 +130,34 @@ export function atualizarDownloadAta(evento, dados) {
 export function finalizarDownloadLote(evento, dados) {
   const { total, sucesso, erros } = dados;
   
+  // Desativa flag de download em lote
+  downloadLoteAtivo = false;
+
   if (window.downloadEmProgresso) {
     window.downloadEmProgresso.concluidos = total;
     window.downloadEmProgresso.sucesso = sucesso;
     window.downloadEmProgresso.erros = erros;
     atualizarProgressoDownload();
   }
-  
-  if (sucesso === total) {
-    mostrarToast('success', 'Completo!', `${total} atas baixadas`, 7000);
-  } else if (sucesso > 0) {
-    mostrarToast('info', 'Finalizado', `${sucesso}/${total} atas. ${erros} erro(s)`, 7000);
+
+   // Mensagem específica se foi cancelado
+  if (cancelado) {
+    mostrarToast('warning', 'Download Cancelado', 
+      `Download interrompido. ${sucesso} ata(s) baixada(s) com sucesso.`, 7000);
   } else {
-    mostrarToast('error', 'Erro', `${erros} erro(s)`, 7000);
+    if (sucesso === total) {
+      mostrarToast('success', 'Completo!', `${total} atas baixadas`, 7000);
+    } else if (sucesso > 0) {
+      mostrarToast('info', 'Finalizado', `${sucesso}/${total} atas. ${erros} erro(s)`, 7000);
+    } else {
+      mostrarToast('error', 'Erro', `${erros} erro(s)`, 7000);
+    }
+  }
+
+  // Remove botão de cancelar
+  const botaoCancelar = document.getElementById('cancel-download-btn');
+  if (botaoCancelar) {
+    botaoCancelar.remove();
   }
 }
 
