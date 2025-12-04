@@ -14,9 +14,7 @@ class DownloadAtaService {
     this.deveCancelarLote = false; // ✅ Flag para cancelamento seguro
   }
 
-  /**
-   * ✅ NOVO: Cancela o download em lote de forma segura
-   */
+  // Cancela o download em lote de forma segura
   cancelarDownloadLote() {
     this.deveCancelarLote = true;
   }
@@ -274,7 +272,7 @@ class DownloadAtaService {
  */
 async baixarAtas(atas, progressCallback) {
 
-  // ✅ Reseta flag de cancelamento no início
+  // Reseta flag de cancelamento no início
   this.resetarCancelamento();
 
   const resultados = {
@@ -282,13 +280,13 @@ async baixarAtas(atas, progressCallback) {
     sucesso: 0,
     erros: 0,
     jaBaixadas: 0,
-    cancelado: false, // ✅ NOVO: Flag para indicar se foi cancelado
+    cancelado: false,
     detalhes: []
   };
 
   for (let i = 0; i < atas.length; i++) {
     
-    // ✅ NOVO: Verifica se deve cancelar ANTES de baixar a próxima ata
+    // Verifica se deve cancelar ANTES de baixar a próxima ata
     if (this.deveCancelarLote) {
       resultados.cancelado = true;
       break; // Sai do loop de forma segura
@@ -377,6 +375,19 @@ async baixarAtas(atas, progressCallback) {
     }
   }
   
+  // Registra estatísticas finais no log
+  logService.registrarEstatisticas({
+    totalAtas: resultados.total,
+    atasSucesso: resultados.sucesso,
+    atasErro: resultados.erros,
+    totalArquivos: resultados.detalhes.reduce((total, ata) => {
+      return total + (ata.arquivos?.length || 0);
+    }, 0)
+  });
+
+  // Força gravação dos logs pendentes
+  logService.flush();
+
   return resultados;
 }
 

@@ -191,13 +191,6 @@
 
     window.addEventListener('message', async (evento) => {
       const { tipo, dados } = evento.data;
-      
-      console.log('[Index] Mensagem recebida:', tipo);
-      console.log('[Index] ========================================');
-      console.log('[Index] Mensagem recebida do iframe:');
-      console.log('[Index] - Tipo:', tipo);
-      console.log('[Index] - Dados:', dados);
-      console.log('[Index] ========================================');
 
       switch (tipo) {
         
@@ -363,6 +356,24 @@
             console.error('[Index] Erro ao iniciar download em lote:', erro);
             evento.source.postMessage({
               tipo: 'resposta-download-todas-atas',
+              sucesso: false,
+              erro: erro.message
+            }, '*');
+          }
+          break;
+        
+        case 'cancelar-download-lote':
+          try {
+            ipcRenderer.send('cancelar-download-lote');
+            
+            evento.source.postMessage({
+              tipo: 'resposta-cancelar-download-lote',
+              sucesso: true
+            }, '*');
+          } catch (erro) {
+            console.error('[Index] Erro ao cancelar download:', erro);
+            evento.source.postMessage({
+              tipo: 'resposta-cancelar-download-lote',
               sucesso: false,
               erro: erro.message
             }, '*');

@@ -41,7 +41,7 @@ function criarJanela() {
       nodeIntegration: true,
       contextIsolation: false,
       webviewTag: true,
-      devTools: true
+      devTools: false
     },
     title: 'SADA-ATA',
     backgroundColor: '#ffffff',
