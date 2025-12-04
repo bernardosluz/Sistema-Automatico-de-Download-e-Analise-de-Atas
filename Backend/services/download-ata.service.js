@@ -53,12 +53,12 @@ class DownloadAtaService {
         // Obter os dados da ata já baixada
         const dadosAta = progressService.obterAta(idAtaPNCP);
 
-        logService.progressService({
+        logService.registrarAta({
         idAtaPNCP: idAtaPNCP,
         numeroAta: numeroAta,
         link: dadosAta.link,
         pasta: dadosAta.pasta,
-        arquivos: dadosAta.arquivosBaixados,
+        arquivos: dadosAta.arquivos,
         sucesso: true,
       });
 
@@ -232,7 +232,7 @@ class DownloadAtaService {
 
       await progressService.save();
 
-      logService.progressService({
+      logService.registrarAta({
         idAtaPNCP: idAtaPNCP,
         numeroAta: numeroAta,
         link: linkPublico,
