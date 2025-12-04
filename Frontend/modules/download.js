@@ -1,6 +1,6 @@
 /**
  * ============================================================================
- * SISTEMA DE DOWNLOADS
+ * SISTEMA DE DOWNLOADS (COM CANCELAMENTO)
  * ============================================================================
  */
 
@@ -8,10 +8,10 @@ import { estado } from './dom.js';
 import { ipcRenderer } from './bridge.js';
 import { mostrarToast } from './toasts.js';
 
-// Flag para controlar se baixar todas está ativo
+// ✅ NOVO: Flag para controlar se download em lote está ativo
 let downloadLoteAtivo = false;
 
-export function baixarAta(idAtaPNCP, numeroAta) {  
+export function baixarAta(idAtaPNCP, numeroAta) {
   const divStatus = document.getElementById(`status-${idAtaPNCP}`);
   if (divStatus) {
     divStatus.innerHTML = '<span class="download-status downloading">⏳ Baixando...</span>';
@@ -26,7 +26,7 @@ export function baixarTodasAtas() {
     return;
   }
   
-  // Ativa flag de download em lote
+  // ✅ Ativa flag de download em lote
   downloadLoteAtivo = true;
   
   window.downloadEmProgresso = {
@@ -47,8 +47,8 @@ export function baixarTodasAtas() {
     divProgresso.innerHTML = `<span>⏳</span><span>0/${window.downloadEmProgresso.total}</span>`;
     botao.parentElement.appendChild(divProgresso);
   }
-  
-  // Adiciona botão de cancelar
+
+  // ✅ NOVO: Adiciona botão de cancelar
   const botaoCancelar = document.createElement('button');
   botaoCancelar.className = 'cancel-download-btn';
   botaoCancelar.id = 'cancel-download-btn';
@@ -65,12 +65,11 @@ export function baixarTodasAtas() {
   if (botao && botao.parentElement) {
     botao.parentElement.appendChild(botaoCancelar);
   }
-
+  
   ipcRenderer.send('download-todas-atas', { atas: estado.todasAsAtasEncontradas });
 }
 
-
-// Função para cancelar download em lote
+// ✅ NOVO: Função para cancelar download em lote
 export function cancelarDownloadLote() {
   if (!downloadLoteAtivo) {
     return;
@@ -94,7 +93,6 @@ export function cancelarDownloadLote() {
   
   mostrarToast('info', 'Cancelando', 'Aguardando finalização segura...', 3000);
 }
-
 
 export function atualizarDownloadAta(evento, dados) {
   const { idAtaPNCP, status, mensagem } = dados;
@@ -128,19 +126,19 @@ export function atualizarDownloadAta(evento, dados) {
 }
 
 export function finalizarDownloadLote(evento, dados) {
-  const { total, sucesso, erros } = dados;
+  const { total, sucesso, erros, cancelado } = dados;
   
-  // Desativa flag de download em lote
+  // ✅ Desativa flag de download em lote
   downloadLoteAtivo = false;
-
+  
   if (window.downloadEmProgresso) {
     window.downloadEmProgresso.concluidos = total;
     window.downloadEmProgresso.sucesso = sucesso;
     window.downloadEmProgresso.erros = erros;
     atualizarProgressoDownload();
   }
-
-   // Mensagem específica se foi cancelado
+  
+  // ✅ NOVO: Mensagem específica se foi cancelado
   if (cancelado) {
     mostrarToast('warning', 'Download Cancelado', 
       `Download interrompido. ${sucesso} ata(s) baixada(s) com sucesso.`, 7000);
@@ -154,7 +152,7 @@ export function finalizarDownloadLote(evento, dados) {
     }
   }
 
-  // Remove botão de cancelar
+  // ✅ Remove botão de cancelar
   const botaoCancelar = document.getElementById('cancel-download-btn');
   if (botaoCancelar) {
     botaoCancelar.remove();

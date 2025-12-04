@@ -20,7 +20,6 @@ let janelaConfiguracoes = null;
  * Envia erro para o frontend de forma padronizada
  */
 function enviarErro(evento, canal, mensagem, tipo = 'erro') {
-  console.error(`[Main] Erro: ${mensagem}`);
   evento.reply(canal, { 
     mensagem, 
     tipo,
@@ -42,7 +41,7 @@ function criarJanela() {
       nodeIntegration: true,
       contextIsolation: false,
       webviewTag: true,
-      devTools: true  // Garante que DevTools está habilitado
+      devTools: true
     },
     title: 'SADA-ATA',
     backgroundColor: '#ffffff',
@@ -53,8 +52,6 @@ function criarJanela() {
 
   janelaPrincipal.once('ready-to-show', () => {
     janelaPrincipal.show();
-    
-    // Abre DevTools após janela estar visível
     janelaPrincipal.webContents.openDevTools({ mode: 'detach' });
   });
 
@@ -62,7 +59,6 @@ function criarJanela() {
     janelaPrincipal = null;
   });
   
-  // ✅ Atalho F12 para abrir DevTools manualmente
   janelaPrincipal.webContents.on('before-input-event', (event, input) => {
     if (input.key === 'F12') {
       janelaPrincipal.webContents.toggleDevTools();
@@ -78,9 +74,7 @@ function criarJanela() {
  * Abre janela de configurações
  */
 ipcMain.on('abrir-configuracoes', () => {
-  console.log('[Main] Abrindo configurações...');
   
-  // Se já existe, apenas foca
   if (janelaConfiguracoes) {
     janelaConfiguracoes.focus();
     return;
@@ -105,12 +99,10 @@ ipcMain.on('abrir-configuracoes', () => {
 
   janelaConfiguracoes.once('ready-to-show', () => {
     janelaConfiguracoes.show();
-    console.log('[Main] Janela de configurações aberta');
   });
 
   janelaConfiguracoes.on('closed', () => {
     janelaConfiguracoes = null;
-    console.log('[Main] Janela de configurações fechada');
   });
 });
 
@@ -118,7 +110,6 @@ ipcMain.on('abrir-configuracoes', () => {
  * Handler: Carregar configurações
  */
 ipcMain.handle('carregar-configuracoes', async () => {
-  console.log('[Main] Carregando configurações...');
   return await configService.carregarConfiguracoes();
 });
 
@@ -130,7 +121,6 @@ ipcMain.handle('salvar-configuracoes', async (event, config) => {
   // VALIDAÇÃO: Valida objeto de configuração
   const validacaoConfig = validar.validarConfiguracao(config);
   if (!validacaoConfig.valido) {
-    console.error('[Main] Configuração inválida:', validacaoConfig.erros);
     throw new Error(validacaoConfig.erros.join(', '));
   }
 
@@ -138,7 +128,6 @@ ipcMain.handle('salvar-configuracoes', async (event, config) => {
   if (config.diretorioDownload) {
     const validacaoDir = await validar.validarDiretorio(config.diretorioDownload);
     if (!validacaoDir.valido) {
-      console.error('[Main] Diretório inválido:', validacaoDir.erro);
       throw new Error(validacaoDir.erro);
     }
   }
@@ -156,7 +145,7 @@ ipcMain.handle('salvar-configuracoes', async (event, config) => {
     try{
       await servicoDownloadAta.inicializarServicos();
     } catch (erro) {
-      console.error('[Main] Erro ao re-inicializar: ', erro.message);
+      // erro silencioso
     }
   }
   return resultado;
@@ -166,7 +155,6 @@ ipcMain.handle('salvar-configuracoes', async (event, config) => {
  * Handler: Selecionar diretório
  */
 ipcMain.handle('selecionar-diretorio', async () => {
-  console.log('[Main] Abrindo seletor de diretório...');
   
   const resultado = await dialog.showOpenDialog({
     properties: ['openDirectory'],
@@ -178,12 +166,10 @@ ipcMain.handle('selecionar-diretorio', async () => {
   }
 
   const diretorioSelecionado = resultado.filePaths[0];
-  console.log('[Main] Diretório selecionado:', diretorioSelecionado);
 
   // VALIDAÇÃO: Valida diretório selecionado
   const validacaoDir = await validar.validarDiretorio(diretorioSelecionado);
   if (!validacaoDir.valido) {
-    console.error('[Main] Diretório inválido:', validacaoDir.erro);
     throw new Error(validacaoDir.erro);
   }
 
@@ -194,7 +180,6 @@ ipcMain.handle('selecionar-diretorio', async () => {
  * Handler: Resetar contador
  */
 ipcMain.handle('resetar-contador', async () => {
-  console.log('[Main] Resetando contador...');
   return await configService.resetarContador();
 });
 
@@ -206,7 +191,6 @@ ipcMain.handle('resetar-contador', async () => {
  * Handler: Buscar atas com validações completas e entrega progressiva
  */
 ipcMain.on('buscar', async (evento, dados) => {
-  console.log('[Main] Requisição de busca recebida');
 
   try {
     // VALIDAÇÃO: Valida dados completos de busca
@@ -255,11 +239,8 @@ ipcMain.on('buscar', async (evento, dados) => {
       totalFinal: resultado.atas?.length || 0,
       paginasConsultadas: resultado.paginasConsultadas
     });
-    
-    console.log('[Main] Busca concluída:', resultado.atas?.length || 0, 'atas');
 
   } catch (erro) {
-    console.error('[Main] Erro na busca:', erro);
     enviarErro(evento, 'erro-busca', 'Erro ao processar busca: ' + erro.message);
   }
 });
@@ -268,14 +249,11 @@ ipcMain.on('buscar', async (evento, dados) => {
  * Handler: Finalizar busca
  */
 ipcMain.on('finalizar-busca', async (evento) => {
-  console.log('[Main] Finalizando busca...');
   
   try {
     await finalizarBusca();
     evento.reply('busca-finalizada', { sucesso: true });
-    console.log('[Main] Busca finalizada com sucesso');
   } catch (erro) {
-    console.error('[Main] Erro ao finalizar:', erro);
     enviarErro(evento, 'erro-busca', 'Erro ao finalizar busca: ' + erro.message);
   }
 });
@@ -288,7 +266,6 @@ ipcMain.on('finalizar-busca', async (evento) => {
  * Handler: Download de uma única ata
  */
 ipcMain.on('download-ata', async (evento, dados) => {
-  console.log('[Main] Download de ata solicitado');
 
   try {
     // VALIDAÇÃO: Valida dados de download
@@ -332,10 +309,7 @@ ipcMain.on('download-ata', async (evento, dados) => {
       mensagem: resultado.mensagem
     });
 
-    console.log('[Main] Download concluído:', resultado.sucesso ? 'sucesso' : 'erro');
-
   } catch (erro) {
-    console.error('[Main] Erro no download:', erro);
     evento.reply('download-ata-progresso', {
       idAtaPNCP: dados?.idAtaPNCP,
       status: 'erro',
@@ -375,7 +349,7 @@ ipcMain.on('download-todas-atas', async (evento, dados) => {
     // VALIDAÇÃO: Valida quantidade de downloads
     const validacaoQtd = validar.validarQuantidadeDownloads(atas.length);
     if (!validacaoQtd.valido && validacaoQtd.tipo === 'confirmacao') {
-      // AImplementar um dialog de confirmação se eu achar necessário
+      // Implementar um dialog de confirmação se necessário
     }
 
     // Callback de progresso
@@ -402,9 +376,9 @@ ipcMain.on('download-todas-atas', async (evento, dados) => {
   }
 });
 
-/**
- * Handler: Cancelar download de forma segura
- */
+// =============================================================================
+// ✅ NOVO: Handler para cancelar download em lote
+// =============================================================================
 ipcMain.on('cancelar-download-lote', async (evento) => {
   try {
     servicoDownloadAta.cancelarDownloadLote();
@@ -420,14 +394,12 @@ ipcMain.on('cancelar-download-lote', async (evento) => {
   }
 });
 
-
 // =============================================================================
 // CICLO DE VIDA DO APP
 // =============================================================================
 
 app.whenReady().then(() => {
   criarJanela();
-  console.log('[App] Iniciado');
   
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
@@ -443,7 +415,7 @@ app.on('window-all-closed', () => {
 });
 
 app.on('before-quit', () => {
-  console.log('[App] Encerrando...');
+  // cleanup silencioso
 });
 
 // =============================================================================
@@ -451,9 +423,9 @@ app.on('before-quit', () => {
 // =============================================================================
 
 process.on('uncaughtException', (erro) => {
-  console.error('[App] Erro não capturado:', erro);
+  // erro silencioso
 });
 
 process.on('unhandledRejection', (erro) => {
-  console.error('[App] Promise rejeitada:', erro);
+  // erro silencioso
 });

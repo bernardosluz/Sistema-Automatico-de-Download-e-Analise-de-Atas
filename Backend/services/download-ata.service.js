@@ -10,17 +10,20 @@ const configService = require('./config.service');
  */
 class DownloadAtaService {
 
-  // Flag para cancelar
-  constructor(){
-    this.deveCancelarLote = false;
+  constructor() {
+    this.deveCancelarLote = false; // ✅ Flag para cancelamento seguro
   }
 
-  // Cancela o Download de Baixar todas de forma segura
-  cancelarDownloadLote(){
+  /**
+   * ✅ NOVO: Cancela o download em lote de forma segura
+   */
+  cancelarDownloadLote() {
     this.deveCancelarLote = true;
   }
 
-  // Reseta a flag de cancelamento
+  /**
+   * ✅ NOVO: Reseta a flag de cancelamento
+   */
   resetarCancelamento() {
     this.deveCancelarLote = false;
   }
@@ -46,7 +49,6 @@ class DownloadAtaService {
         
         return true;
       } catch (erro) {
-        console.error('[Download Ata] Erro ao inicializar serviços:', erro.message);
         throw erro;
       }
     }
@@ -107,7 +109,6 @@ class DownloadAtaService {
         try {
           // Constrói URL do arquivo
           const url = construirUrlArquivo(parts, numeroArquivo);
-          console.log(`[Download Ata] URL: ${url}`);
 
           // Baixa para os destinos configurados (direto, organizado ou ambos)
           const resultados = await downloadService.downloadArquivo(url, caminhos, numeroArquivo);
@@ -119,8 +120,6 @@ class DownloadAtaService {
             tamanho: resultados[0].tamanho,
             destinos: resultados.map(r => r.tipo) // ['direto'] ou ['organizado'] ou ['direto', 'organizado']
           });
-
-          console.log(`[Download Ata] ✅ Arquivo ${numeroArquivo} baixado:`, resultados);
 
           // Reseta contador de falhas
           tentativasFalhas = 0;
@@ -144,7 +143,6 @@ class DownloadAtaService {
           }
           // Outros erros (rede, timeout, etc)
           else {
-            console.error(`[Download Ata] Erro ao baixar arquivo ${numeroArquivo}:`, erro.message);
             // Tenta próximo arquivo
             tentativasFalhas++;
             numeroArquivo++;
@@ -223,7 +221,6 @@ class DownloadAtaService {
       };
 
     } catch (erro) {
-      console.error(`[Download Ata] Erro geral ao baixar ata ${idAtaPNCP}:`, erro.message);
     
       // Tentar gerar o link com segurança
       let linkPublico = null;
@@ -270,29 +267,33 @@ class DownloadAtaService {
   }
 
   /**
- * Baixa múltiplas atas com suporte de cancelamento seguro
+ * Baixa múltiplas atas com suporte a cancelamento seguro
  * @param {Array} atas - Array de atas a baixar [{idAtaPNCP, numeroAta}, ...]
  * @param {Function} progressCallback - Callback de progresso
  * @returns {Promise<Object>} Resultado do download
  */
 async baixarAtas(atas, progressCallback) {
 
+  // ✅ Reseta flag de cancelamento no início
+  this.resetarCancelamento();
+
   const resultados = {
     total: atas.length,
     sucesso: 0,
     erros: 0,
     jaBaixadas: 0,
-    cancelamento: false,
+    cancelado: false, // ✅ NOVO: Flag para indicar se foi cancelado
     detalhes: []
   };
 
   for (let i = 0; i < atas.length; i++) {
-
-    if(this.deveCancelarLote){
-      resultados.cancelado = true;
-      break;
-    }
     
+    // ✅ NOVO: Verifica se deve cancelar ANTES de baixar a próxima ata
+    if (this.deveCancelarLote) {
+      resultados.cancelado = true;
+      break; // Sai do loop de forma segura
+    }
+
     const ata = atas[i];
 
     try {
@@ -311,7 +312,6 @@ async baixarAtas(atas, progressCallback) {
       }
 
       // Baixa a ata (todos os arquivos dela)
-      // A verificação agora está DENTRO de baixarAta()
       const resultado = await this.baixarAta(
         ata.idAtaPNCP, 
         ata.numeroAta
@@ -320,16 +320,16 @@ async baixarAtas(atas, progressCallback) {
       // Contabiliza o resultado
       if (resultado.sucesso) {
         if (resultado.jaBaixada) {
-          resultados.jaBaixadas++; // TODO: Você - Era já baixada
+          resultados.jaBaixadas++;
         } else {
-          resultados.sucesso++; // TODO: Você - Download novo bem-sucedido
+          resultados.sucesso++;
         }
         
         if (progressCallback) {
           progressCallback({
             idAtaPNCP: ata.idAtaPNCP,
             numeroAta: ata.numeroAta,
-            status: resultado.jaBaixada ? 'ja-baixada' : 'sucesso', // TODO: Você - Status diferente
+            status: resultado.jaBaixada ? 'ja-baixada' : 'sucesso',
             mensagem: resultado.mensagem,
             progresso: {
               atual: i + 1,
